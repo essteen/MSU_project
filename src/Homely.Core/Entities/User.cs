@@ -2,7 +2,10 @@ namespace Homely.Core.Entities;
 
 public class User
 {
-    public int Id { get; set; }
+    public Guid Id { get; set; }
 
-    public string Name { get; set; }
+    public string? Name { get; set; }
+
+    public Guid? HouseholdId { get; set; }
+    public Household? Household { get; set; }
 }

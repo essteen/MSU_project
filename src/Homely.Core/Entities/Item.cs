@@ -1,4 +1,4 @@
-namespace Homely.Core.Entity;
+namespace Homely.Core.Entities;
 
 public enum Category
 {
@@ -10,11 +10,16 @@ public enum Category
 
 public class Item
 {
-    public int ItemId { get; set; }
+    public Guid ItemId { get; set; }
 
-    public string Name { get; set; }
+    public string? Name { get; set; }
 
     public Category Category { get; set; }
 
-    // legg til som user    
+    public decimal? Price { get; set; }
+
+    public User? Owner { get; set; }
+
+    public Guid HouseholdId { get; set; }
+    public Household? Household { get; set; }
 }

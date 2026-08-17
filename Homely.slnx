@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Homely.Api/Homely.Api.csproj" />
+    <Project Path="src/Homely.Core/Homely.Core.csproj" />
+    <Project Path="src/Homely.Infrastructure/Homely.Infrastructure.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,18 @@
+bin/
+obj/
+
+# IDE / editor
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+
+# OS
+.DS_Store
+
+# local secrets / config overrides
+appsettings.*.local.json
+appsettings.Development.json
+*.env
+.env
