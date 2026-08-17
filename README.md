@@ -4,18 +4,18 @@
 
 ### features
 
-Wishes
+#### Wishes
 	hva mangler til kollektivet
 	link til ønsker (pris fordelt smart)
 	Markere hvem som har lagt til ønskene (bruker)
 
-Bought / have
+#### Bought / have
 	feature for hva som er kjøpt
 		navn på "eier", hva, hvilken kategori, pris
 	hva det kostet, legge inn manuelt eller med AI greia
 	hvem eier hva
 
-Expenses
+#### Expenses
 	Expences av ting - samt tracking
 	vise en total expences
 	en total per pers
