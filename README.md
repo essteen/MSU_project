@@ -22,3 +22,5 @@ Expenses
 	en overikt på hvem som skylder hva ish
 
 kanskje: husarbeid (nice to have)
+
+Database storage: relational database
