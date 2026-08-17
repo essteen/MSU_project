@@ -1,0 +1,1 @@
+// her skal vi legge inn kvittering gjenkjenneren med ai
