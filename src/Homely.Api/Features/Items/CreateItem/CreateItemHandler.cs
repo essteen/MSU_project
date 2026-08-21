@@ -10,7 +10,6 @@ public static class CreateItemHandler
     {
         var householdExists = await db.Households.AnyAsync(h => h.HouseholdId == request.HouseholdId);
         var ownerExists = await db.Users.AnyAsync(u => u.Id == request.OwnerId);
-
         if (!householdExists || !ownerExists)
         {
             return null;
@@ -18,17 +17,15 @@ public static class CreateItemHandler
 
         var item = new Item
         {
-            ItemId = Guid.NewGuid(),
             Name = request.Name,
             Category = request.Category,
-            Price = request.Price,
+            Price = request.Price ?? 0,
             OwnerId = request.OwnerId,
             HouseholdId = request.HouseholdId
         };
 
         db.Items.Add(item);
         await db.SaveChangesAsync();
-
         return item;
     }
 }

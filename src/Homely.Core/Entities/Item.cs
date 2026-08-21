@@ -10,14 +10,12 @@ public enum Category
 
 public class Item
 {
-    public Guid ItemId { get; set; }
-
+    public int ItemId { get; set; }
     public string? Name { get; set; }
-
     public Category Category { get; set; }
+    public decimal Price { get; set; }
 
-    public decimal? Price { get; set; }
-
+    public Guid OwnerId { get; set; }
     public User? Owner { get; set; }
 
     public Guid HouseholdId { get; set; }
