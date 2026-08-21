@@ -1,0 +1,40 @@
+@baseUrl = http://localhost:5299
+
+### Create a household
+POST {{baseUrl}}/households
+Content-Type: application/json
+
+{
+  "name": "Kollektivet"
+}
+
+### List households
+GET {{baseUrl}}/households
+
+### Create a user (paste a householdId from above)
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{
+  "name": "Andrine",
+  "householdId": "PASTE_HOUSEHOLD_ID_HERE"
+}
+
+### List users
+GET {{baseUrl}}/users
+
+### Create an item (paste ownerId + householdId from above)
+### Category: 0 = Kitchen, 1 = Bedroom, 2 = Livingroom, 3 = Bathroom
+POST {{baseUrl}}/items
+Content-Type: application/json
+
+{
+  "name": "Vacuum cleaner",
+  "category": 0,
+  "price": 499.90,
+  "ownerId": "PASTE_USER_ID_HERE",
+  "householdId": "PASTE_HOUSEHOLD_ID_HERE"
+}
+
+### List items
+GET {{baseUrl}}/items
