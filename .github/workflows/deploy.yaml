@@ -21,12 +21,12 @@ jobs:
 
       - name: Bygg og push image
         run: |
-          docker build -t acrhomelydev01.azurecr.io/homely:${{ github.sha }} .
-          docker push acrhomelydev01.azurecr.io/homely:${{ github.sha }}
+          docker build -t acrhomelydev01.azurecr.io/households:${{ github.sha }} .
+          docker push acrhomelydev01.azurecr.io/households:${{ github.sha }}
 
       - name: Oppdater Container App med nytt image
         run: |
-          az containerapp update \
-            --name household-env \
-            --resource-group "rg-homely" \
-            --image acrhomelydev01.azurecr.io/homely:${{ github.sha }}
+          az containerapp update
+            --name household-env
+            --resource-group "rg-homely"
+            --image acrhomelydev01.azurecr.io/households:${{ github.sha }}
