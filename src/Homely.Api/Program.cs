@@ -18,6 +18,9 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 
 var app = builder.Build();
 
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<HomelyDbContext>();
@@ -30,5 +33,7 @@ app.MapCreateUser();
 app.MapGetUsers();
 app.MapCreateItem();
 app.MapGetItems();
+
+app.MapFallbackToFile("index.html");
 
 app.Run();

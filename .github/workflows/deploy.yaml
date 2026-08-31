@@ -9,15 +9,15 @@ jobs:
     steps:
       - name: Checkout kode
         uses: actions/checkout@v4
-      - name: Logg inn på Azure
+      - name: Logg inn pï¿½ Azure
         uses: azure/login@v2
         with:
           creds: ${{ secrets.SETUP }}
-      - name: Logg inn på ACR
+      - name: Logg inn pï¿½ ACR
         run: az acr login --name acrhomelydev01
       - name: Bygg og push image
         run: |
-          docker build -t acrhomelydev01.azurecr.io/homely:${{ github.sha }} -f src/Homely.Api/Dockerfile src
+          docker build -t acrhomelydev01.azurecr.io/homely:${{ github.sha }} -f src/Homely.Api/Dockerfile .
           docker push acrhomelydev01.azurecr.io/homely:${{ github.sha }}
       - name: Oppdater Container App med nytt image
         run: az containerapp update --name homely-api --resource-group "rg-homely" --image acrhomelydev01.azurecr.io/homely:${{ github.sha }}
