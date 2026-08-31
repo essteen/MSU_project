@@ -20,4 +20,4 @@ jobs:
           docker build -t acrhomelydev01.azurecr.io/homely:${{ github.sha }} -f src/Homely.Api/Dockerfile src
           docker push acrhomelydev01.azurecr.io/homely:${{ github.sha }}
       - name: Oppdater Container App med nytt image
-        run: az containerapp update --name household-env --resource-group "rg-homely" --image acrhomelydev01.azurecr.io/homely:${{ github.sha }}
+        run: az containerapp update --name homely-api --resource-group "rg-homely" --image acrhomelydev01.azurecr.io/homely:${{ github.sha }}
