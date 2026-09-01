@@ -6,15 +6,19 @@ export default defineConfig({
     host: '0.0.0.0',
     proxy: {
       '/households': {
-        target: 'http://localhost:8080',
+        target: 'http://localhost:5000',
         changeOrigin: true
       },
       '/users': {
-        target: 'http://localhost:8080',
+        target: 'http://localhost:5000',
         changeOrigin: true
       },
       '/items': {
-        target: 'http://localhost:8080',
+        target: 'http://localhost:5000',
+        changeOrigin: true
+      },
+      '/auth': {
+        target: 'http://localhost:5000',
         changeOrigin: true
       }
     }
