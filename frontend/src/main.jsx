@@ -132,6 +132,26 @@ function App() {
 
   return (
     <main className="app-shell">
+      <header className="navbar">
+        <div className="navbar-left">
+          <div className="logo" aria-label="Homely logo">
+            <div className="logo-mark">H</div>
+            <span>Homely</span>
+          </div>
+        </div>
+
+        <div className="navbar-right">
+          <button type="button" className="nav-button" onClick={() => window.location.assign('#my-households')}>
+            My households
+          </button>
+
+          <div className="auth-buttons">
+            <button type="button" className="auth-button">Log in</button>
+            <button type="button" className="auth-button primary">Sign up</button>
+          </div>
+        </div>
+      </header>
+
       <header className="topbar">
         <div>
           <p className="eyebrow">Household dashboard</p>
