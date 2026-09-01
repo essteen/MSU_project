@@ -1,5 +1,6 @@
 bin/
 obj/
+node_modules/
 
 # IDE / editor
 .vs/
@@ -16,3 +17,11 @@ appsettings.*.local.json
 appsettings.Development.json
 *.env
 .env
+
+# local dev database
+src/Homely.Api/homely.db
+src/Homely.Api/homely.db-shm
+src/Homely.Api/homely.db-wal
+
+# stray Windows redirect artifact
+/nul

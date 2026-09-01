@@ -11,5 +11,14 @@ public class HomelyDbContext : DbContext
     public DbSet<Household> Households => Set<Household>();
     public DbSet<User> Users => Set<User>();
     public DbSet<Item> Items => Set<Item>();
-    // legg til flere DbSet<> etter behov, basert på entities i Homely.Core
+    // legg til flere DbSet<> etter behov, basert pï¿½ entities i Homely.Core
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<User>(entity =>
+        {
+            entity.HasIndex(u => u.Email).IsUnique().HasFilter("Email <> ''");
+            entity.HasIndex(u => u.Username).IsUnique().HasFilter("Username <> ''");
+        });
+    }
 }

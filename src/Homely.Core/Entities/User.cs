@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Homely.Core.Entities;
 
 public class User
@@ -6,4 +8,12 @@ public class User
     public string? Name { get; set; }
     public Guid? HouseholdId { get; set; }
     public Household? Household { get; set; }
+
+    public string Username { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+
+    [JsonIgnore]
+    public string PasswordHash { get; set; } = string.Empty;
+
+    public DateOnly BirthDate { get; set; }
 }
