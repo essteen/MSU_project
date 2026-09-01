@@ -1,12 +1,25 @@
 import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom/client';
+import { AuthProvider, useAuth } from './context/AuthContext.jsx';
+import AuthModal from './components/AuthModal.jsx';
 import './styles.css';
 
 const categoryOptions = ['Kitchen', 'Bedroom', 'Livingroom', 'Bathroom'];
 
 async function apiFetch(url, options = {}) {
+  let authHeader = {};
+  try {
+    const stored = localStorage.getItem('homely.auth');
+    const token = stored ? JSON.parse(stored)?.token : null;
+    if (token) {
+      authHeader = { Authorization: `Bearer ${token}` };
+    }
+  } catch {
+    // ignore malformed stored auth
+  }
+
   const response = await fetch(url, {
-    headers: { 'Content-Type': 'application/json', ...(options.headers ?? {}) },
+    headers: { 'Content-Type': 'application/json', ...authHeader, ...(options.headers ?? {}) },
     ...options
   });
 
@@ -23,6 +36,10 @@ async function apiFetch(url, options = {}) {
 }
 
 function App() {
+  const { user, logout } = useAuth();
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [authModalMode, setAuthModalMode] = useState('login');
+
   const [households, setHouseholds] = useState([]);
   const [users, setUsers] = useState([]);
   const [items, setItems] = useState([]);
@@ -146,8 +163,29 @@ function App() {
           </button>
 
           <div className="auth-buttons">
-            <button type="button" className="auth-button">Log in</button>
-            <button type="button" className="auth-button primary">Sign up</button>
+            {user ? (
+              <>
+                <span className="auth-username">{user.username}</span>
+                <button type="button" className="auth-button" onClick={logout}>Log out</button>
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  className="auth-button"
+                  onClick={() => { setAuthModalMode('login'); setAuthModalOpen(true); }}
+                >
+                  Log in
+                </button>
+                <button
+                  type="button"
+                  className="auth-button primary"
+                  onClick={() => { setAuthModalMode('register'); setAuthModalOpen(true); }}
+                >
+                  Sign up
+                </button>
+              </>
+            )}
           </div>
         </div>
       </header>
@@ -278,12 +316,20 @@ function App() {
           </ul>
         </article>
       </section>
+
+      <AuthModal
+        isOpen={authModalOpen}
+        initialMode={authModalMode}
+        onClose={() => setAuthModalOpen(false)}
+      />
     </main>
   );
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <App />
+    <AuthProvider>
+      <App />
+    </AuthProvider>
   </React.StrictMode>
 );
