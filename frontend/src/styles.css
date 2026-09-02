@@ -319,3 +319,64 @@ li span {
   background: transparent;
   text-decoration: underline;
 }
+
+.landing-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 48px;
+  min-height: 60vh;
+  padding: 40px 0;
+  flex-wrap: wrap;
+}
+
+.landing-copy {
+  flex: 1 1 380px;
+  max-width: 520px;
+}
+
+.landing-subtitle {
+  margin: 20px 0 28px;
+  font-size: 1.1rem;
+  color: var(--color-deep-ink);
+  opacity: 0.85;
+  line-height: 1.6;
+}
+
+.landing-actions {
+  display: flex;
+  gap: 14px;
+}
+
+.landing-illustration {
+  flex: 1 1 320px;
+  max-width: 380px;
+}
+
+.landing-illustration svg {
+  width: 100%;
+  height: auto;
+}
+
+.landing-fade {
+  opacity: 0;
+  animation: landing-fade-in 0.8s ease-out forwards;
+}
+
+@keyframes landing-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-fade {
+    animation: none;
+    opacity: 1;
+  }
+}
