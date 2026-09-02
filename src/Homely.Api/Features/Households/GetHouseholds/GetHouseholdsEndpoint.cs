@@ -7,7 +7,7 @@ public static class GetHouseholdsEndpoint
     public static IEndpointRouteBuilder MapGetHouseholds(this IEndpointRouteBuilder app)
     {
         app.MapGet("/households", async (HomelyDbContext db) =>
-            Results.Ok(await GetHouseholdsHandler.HandleAsync(db)));
+            Results.Ok(await GetHouseholdsHandler.HandleAsync(db))).RequireAuthorization();
 
         return app;
     }

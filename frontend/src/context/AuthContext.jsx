@@ -14,7 +14,7 @@ async function authFetch(url, options = {}) {
   const body = isJson ? await response.json() : await response.text();
 
   if (!response.ok) {
-    const message = (isJson && body?.error) || (typeof body === 'string' && body) || 'Request failed';
+    const message = (isJson && body?.error) || (typeof body === 'string' && body) || 'Forespørselen feilet';
     throw new Error(message);
   }
 
