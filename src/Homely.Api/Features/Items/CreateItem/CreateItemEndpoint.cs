@@ -11,7 +11,7 @@ public static class CreateItemEndpoint
             var item = await CreateItemHandler.HandleAsync(request, db);
 
             return item is null
-                ? Results.BadRequest("HouseholdId or OwnerId does not match an existing household/user.")
+                ? Results.BadRequest("HouseholdId eller OwnerId samsvarer ikke med en eksisterende husholdning/bruker.")
                 : Results.Created($"/items/{item.ItemId}", item);
         });
 

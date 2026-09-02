@@ -6,8 +6,9 @@ public class User
 {
     public Guid Id { get; set; }
     public string? Name { get; set; }
-    public Guid? HouseholdId { get; set; }
-    public Household? Household { get; set; }
+
+    [JsonIgnore]
+    public List<Household> Households { get; set; } = new();
 
     public string Username { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;

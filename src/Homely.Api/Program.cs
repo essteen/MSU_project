@@ -3,9 +3,10 @@ using Homely.Api.Features.Auth.Login;
 using Homely.Api.Features.Auth.Register;
 using Homely.Api.Features.Households.CreateHousehold;
 using Homely.Api.Features.Households.GetHouseholds;
+using Homely.Api.Features.Households.GetMyHouseholds;
+using Homely.Api.Features.Households.JoinHousehold;
 using Homely.Api.Features.Items.CreateItem;
 using Homely.Api.Features.Items.GetItems;
-using Homely.Api.Features.Users.CreateUser;
 using Homely.Api.Features.Users.GetUsers;
 using Homely.Core.Entities;
 using Homely.Infrastructure.Data;
@@ -79,7 +80,8 @@ using (var scope = app.Services.CreateScope())
 
 app.MapCreateHousehold();
 app.MapGetHouseholds();
-app.MapCreateUser();
+app.MapGetMyHouseholds();
+app.MapJoinHousehold();
 app.MapGetUsers();
 app.MapCreateItem();
 app.MapGetItems();

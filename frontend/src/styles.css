@@ -380,3 +380,91 @@ li span {
     opacity: 1;
   }
 }
+
+.empty-state {
+  text-align: center;
+  color: var(--color-deep-ink);
+  opacity: 0.75;
+  padding: 40px 24px;
+}
+
+.household-card p {
+  color: var(--color-midnight-green);
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+.add-household-panel {
+  margin-bottom: 28px;
+}
+
+.tab-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.tab-button {
+  background: transparent;
+  color: var(--color-midnight-green);
+  border: 1px solid rgba(0, 96, 120, 0.2);
+}
+
+.tab-button.active {
+  background: var(--color-midnight-green);
+  color: white;
+}
+
+.list-row {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.list-row-info {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+}
+
+.list-row-info > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.household-icon {
+  flex-shrink: 0;
+  color: rgba(31, 42, 46, 0.55);
+}
+
+.household-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.household-card-header h2 {
+  margin: 0;
+}
+
+.member-icons {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.member-icon {
+  color: rgba(31, 42, 46, 0.45);
+}
+
+.member-icon-overflow {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-deep-ink);
+  opacity: 0.6;
+  margin-left: 2px;
+}
