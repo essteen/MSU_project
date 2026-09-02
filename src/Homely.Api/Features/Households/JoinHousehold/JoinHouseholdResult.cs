@@ -1,12 +1,11 @@
-using Homely.Core.Entities;
-
 namespace Homely.Api.Features.Households.JoinHousehold;
 
 public enum JoinHouseholdStatus
 {
-    Joined,
+    Requested,
     HouseholdNotFound,
-    AlreadyMember
+    AlreadyMember,
+    AlreadyRequested
 }
 
-public record JoinHouseholdResult(JoinHouseholdStatus Status, Household? Household);
+public record JoinHouseholdResult(JoinHouseholdStatus Status);

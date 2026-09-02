@@ -41,6 +41,26 @@ export function PersonIcon({ size = 18, className = '' }) {
   );
 }
 
+export function BellIcon({ size = 22, className = '' }) {
+  return (
+    <svg
+      className={className}
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M6 9.5a6 6 0 1 1 12 0c0 4 1.5 5.5 1.5 5.5h-15S6 13.5 6 9.5Z" />
+      <path d="M10 19a2 2 0 0 0 4 0" />
+    </svg>
+  );
+}
+
 const MAX_VISIBLE_MEMBER_ICONS = 8;
 
 export function MemberIcons({ count }) {

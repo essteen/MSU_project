@@ -5,6 +5,7 @@ public class Household
 {
     public Guid HouseholdId { get; set; }
     public string? Name { get; set; }
+    public Guid CreatedByUserId { get; set; }
     public List<User> Members { get; set; } = new();
 
     public List<Item>? Items { get; set; }
