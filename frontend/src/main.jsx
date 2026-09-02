@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { AuthProvider, useAuth } from './context/AuthContext.jsx';
 import AuthModal from './components/AuthModal.jsx';
 import LandingPage from './components/LandingPage.jsx';
+import HouseholdPage from './pages/HouseholdPage.jsx';
 import './styles.css';
 
 const categoryOptions = ['Kitchen', 'Bedroom', 'Livingroom', 'Bathroom'];
@@ -46,6 +47,7 @@ function App() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [openHousehold, setOpenHousehold] = useState(null);
 
   const [householdName, setHouseholdName] = useState('');
   const [userName, setUserName] = useState('');
@@ -150,6 +152,10 @@ function App() {
     }
   };
 
+  if (window.location.hash === '#preview-household') {
+    return <HouseholdPage household={null} onBack={() => window.location.assign('#')} />;
+  }
+
   return (
     <main className="app-shell">
       <header className="navbar">
@@ -195,7 +201,9 @@ function App() {
         </div>
       </header>
 
-      {user ? (
+      {user && openHousehold ? (
+        <HouseholdPage household={openHousehold} onBack={() => setOpenHousehold(null)} />
+      ) : user ? (
         <>
           <header className="topbar">
             <div>
@@ -290,7 +298,14 @@ function App() {
               {loading ? <p>Loading…</p> : (
                 <ul>
                   {households.map((household) => (
-                    <li key={household.householdId}>
+                    <li
+                      key={household.householdId}
+                      className="clickable-row"
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => setOpenHousehold(household)}
+                      onKeyDown={(event) => event.key === 'Enter' && setOpenHousehold(household)}
+                    >
                       <strong>{household.name}</strong>
                       <span>{household.members?.length ?? 0} members</span>
                     </li>
