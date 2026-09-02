@@ -20,9 +20,6 @@ export async function apiFetch(url, options = {}) {
     throw new Error(text || 'Forespørselen feilet');
   }
 
-  if (response.status === 204) {
-    return null;
-  }
-
-  return response.json();
+  const text = await response.text();
+  return text ? JSON.parse(text) : null;
 }

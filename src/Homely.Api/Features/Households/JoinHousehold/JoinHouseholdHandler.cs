@@ -1,3 +1,4 @@
+using Homely.Core.Entities;
 using Homely.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,18 +14,33 @@ public static class JoinHouseholdHandler
 
         if (household is null)
         {
-            return new JoinHouseholdResult(JoinHouseholdStatus.HouseholdNotFound, null);
+            return new JoinHouseholdResult(JoinHouseholdStatus.HouseholdNotFound);
         }
 
         if (household.Members.Any(m => m.Id == userId))
         {
-            return new JoinHouseholdResult(JoinHouseholdStatus.AlreadyMember, household);
+            return new JoinHouseholdResult(JoinHouseholdStatus.AlreadyMember);
         }
 
-        var user = await db.Users.FirstAsync(u => u.Id == userId);
-        household.Members.Add(user);
+        var alreadyRequested = await db.HouseholdJoinRequests.AnyAsync(r =>
+            r.HouseholdId == householdId && r.UserId == userId && r.Status == JoinRequestStatus.Pending);
+
+        if (alreadyRequested)
+        {
+            return new JoinHouseholdResult(JoinHouseholdStatus.AlreadyRequested);
+        }
+
+        db.HouseholdJoinRequests.Add(new HouseholdJoinRequest
+        {
+            Id = Guid.NewGuid(),
+            HouseholdId = householdId,
+            UserId = userId,
+            Status = JoinRequestStatus.Pending,
+            RequestedAt = DateTime.UtcNow
+        });
+
         await db.SaveChangesAsync();
 
-        return new JoinHouseholdResult(JoinHouseholdStatus.Joined, household);
+        return new JoinHouseholdResult(JoinHouseholdStatus.Requested);
     }
 }

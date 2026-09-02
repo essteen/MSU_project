@@ -18,6 +18,7 @@ public static class CreateHouseholdHandler
         {
             HouseholdId = Guid.NewGuid(),
             Name = request.Name,
+            CreatedByUserId = creatorUserId,
             Members = new List<User> { creator }
         };
 

@@ -14,8 +14,9 @@ public static class JoinHouseholdEndpoint
 
             return result.Status switch
             {
-                JoinHouseholdStatus.Joined => Results.Ok(result.Household),
+                JoinHouseholdStatus.Requested => Results.Accepted(),
                 JoinHouseholdStatus.AlreadyMember => Results.Conflict("Du er allerede medlem av denne husholdningen."),
+                JoinHouseholdStatus.AlreadyRequested => Results.Conflict("Du har allerede en ventende forespørsel om å bli med i denne husholdningen."),
                 _ => Results.NotFound()
             };
         }).RequireAuthorization();

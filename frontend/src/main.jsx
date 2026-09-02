@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './context/AuthContext.jsx';
 import AuthModal from './components/AuthModal.jsx';
 import LandingPage from './components/LandingPage.jsx';
 import HouseholdOverview from './components/HouseholdOverview.jsx';
+import NotificationBell from './components/NotificationBell.jsx';
 import './styles.css';
 
 function App() {
@@ -22,6 +23,7 @@ function App() {
         </div>
 
         <div className="navbar-right">
+          {user ? <NotificationBell /> : null}
           <div className="auth-buttons">
             {user ? (
               <>
