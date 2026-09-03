@@ -888,3 +888,36 @@ li span {
   color: var(--color-midnight-green);
   font-size: 0.85rem;
 }
+
+.add-choice-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.add-choice-button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  background: rgba(130, 186, 196, 0.12);
+  color: var(--color-deep-ink);
+  border: 1px solid rgba(0, 96, 120, 0.12);
+  border-radius: 14px;
+  padding: 14px 16px;
+  text-align: left;
+}
+
+.add-choice-button:hover {
+  background: rgba(130, 186, 196, 0.22);
+  color: var(--color-deep-ink);
+}
+
+.add-choice-button strong {
+  color: var(--color-midnight-green);
+}
+
+.add-choice-button span {
+  font-size: 0.85rem;
+  opacity: 0.8;
+}

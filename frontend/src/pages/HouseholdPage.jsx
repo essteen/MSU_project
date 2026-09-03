@@ -1,30 +1,25 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { apiFetch } from '../api.js';
 
 const EXPENSE_COLORS = ['#006078', '#82BAC4', '#E37C78', '#FFD4D1', '#1F2A2E', '#DFF3F8'];
+const MEMBER_EMOJIS = ['🦊', '🐼', '🐸', '🐨', '🐰', '🐯', '🐷', '🐵', '🐶', '🐱', '🐮', '🐭'];
 
-const MOCK_MEMBERS = [
-  { id: 'm1', name: 'Emilie', emoji: '🦊' },
-  { id: 'm2', name: 'Jonas', emoji: '🐼' },
-  { id: 'm3', name: 'Sara', emoji: '🐸' },
-  { id: 'm4', name: 'Noah', emoji: '🐨' }
-];
+function emojiForMember(memberId) {
+  const hash = String(memberId)
+    .split('')
+    .reduce((sum, char) => sum + char.charCodeAt(0), 0);
+  return MEMBER_EMOJIS[hash % MEMBER_EMOJIS.length];
+}
 
-const MOCK_PURCHASED_ITEMS = [
-  { id: 'p1', name: 'Melk', price: 24, addedBy: 'Emilie' },
-  { id: 'p2', name: 'Oppvasktabletter', price: 89, addedBy: 'Jonas' },
-  { id: 'p3', name: 'Toalettpapir', price: 65, addedBy: 'Sara' }
-];
-
-const MOCK_WISHLIST_ITEMS = [
-  { id: 'w1', name: 'Ny støvsuger', url: '', addedBy: 'Noah' },
-  { id: 'w2', name: 'Kaffetrakter', url: 'https://www.komplett.no', addedBy: 'Emilie' }
-];
+function memberDisplayName(member) {
+  return member?.name || member?.username || 'Ukjent';
+}
 
 function MemberAvatar({ member }) {
   return (
     <div className="member-chip">
-      <div className="member-emoji" aria-hidden="true">{member.emoji}</div>
-      <span className="member-name">{member.name}</span>
+      <div className="member-emoji" aria-hidden="true">{emojiForMember(member.id)}</div>
+      <span className="member-name">{memberDisplayName(member)}</span>
     </div>
   );
 }
@@ -116,22 +111,69 @@ function ItemDetailModal({ title, rows, onClose }) {
   );
 }
 
-function ItemPanelModal({ title, fields, onClose, onAddItem }) {
+function AddChoiceModal({ title, onClose, onChooseManual, onChooseReceipt }) {
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-card" onClick={(event) => event.stopPropagation()}>
+        <div className="modal-header">
+          <h2>{title}</h2>
+          <button type="button" className="modal-close" onClick={onClose} aria-label="Lukk">×</button>
+        </div>
+
+        <div className="add-choice-list">
+          <button type="button" className="add-choice-button" onClick={onChooseManual}>
+            <strong>Legg til manuelt</strong>
+            <span>Skriv inn varenavn og pris selv</span>
+          </button>
+          <button type="button" className="add-choice-button" onClick={onChooseReceipt}>
+            <strong>Legg til via kvittering</strong>
+            <span>Last opp bilde av kvittering</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ReceiptPlaceholderModal({ onClose, onSwitchToManual }) {
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-card" onClick={(event) => event.stopPropagation()}>
+        <div className="modal-header">
+          <h2>Legg til via kvittering</h2>
+          <button type="button" className="modal-close" onClick={onClose} aria-label="Lukk">×</button>
+        </div>
+
+        <p>Automatisk gjenkjenning av kvitteringer kommer senere. Da vil du kunne laste opp et bilde, og feltene fylles ut automatisk.</p>
+
+        <button type="button" onClick={onSwitchToManual}>Legg til manuelt i mellomtiden</button>
+      </div>
+    </div>
+  );
+}
+
+function ItemPanelModal({ title, fields, onClose, onAddItem, error }) {
   const [values, setValues] = useState(() =>
     Object.fromEntries(fields.map((field) => [field.key, '']))
   );
+  const [submitting, setSubmitting] = useState(false);
 
   const handleChange = (key) => (event) => {
     setValues((current) => ({ ...current, [key]: event.target.value }));
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     if (!values.name?.trim()) {
       return;
     }
-    onAddItem(values);
-    onClose();
+    setSubmitting(true);
+    try {
+      await onAddItem(values);
+      onClose();
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -141,6 +183,8 @@ function ItemPanelModal({ title, fields, onClose, onAddItem }) {
           <h2>{title}</h2>
           <button type="button" className="modal-close" onClick={onClose} aria-label="Lukk">×</button>
         </div>
+
+        {error ? <div className="alert">{error}</div> : null}
 
         <form onSubmit={handleSubmit} className="stacked-form panel-add-form">
           {fields.map((field) => (
@@ -153,37 +197,71 @@ function ItemPanelModal({ title, fields, onClose, onAddItem }) {
               required={field.required}
             />
           ))}
-          <button type="submit">Legg til</button>
+          <button type="submit" disabled={submitting}>{submitting ? 'Legger til…' : 'Legg til'}</button>
         </form>
       </div>
     </div>
   );
 }
 
-export default function HouseholdPage({ household, onBack }) {
-  const members = household?.members?.length ? household.members : MOCK_MEMBERS;
+export default function HouseholdPage({ household, currentUser, onBack }) {
+  const members = household?.members ?? [];
 
-  const [purchasedItems, setPurchasedItems] = useState(MOCK_PURCHASED_ITEMS);
-  const [wishlistItems, setWishlistItems] = useState(MOCK_WISHLIST_ITEMS);
+  const [purchasedItems, setPurchasedItems] = useState([]);
+  const [wishlistItems, setWishlistItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [addError, setAddError] = useState('');
   const [openPanel, setOpenPanel] = useState(null);
   const [selectedPurchasedItem, setSelectedPurchasedItem] = useState(null);
   const [selectedWishlistItem, setSelectedWishlistItem] = useState(null);
 
-  const addPurchasedItem = (values) => {
-    setPurchasedItems((current) => [
-      {
-        id: `p${Date.now()}`,
-        name: values.name,
-        price: values.price ? Number(values.price) : undefined,
-        addedBy: 'Deg'
-      },
-      ...current
-    ]);
+  const loadItems = async () => {
+    try {
+      setLoading(true);
+      const data = await apiFetch('/items');
+      setPurchasedItems((data ?? []).filter((item) => item.householdId === household.householdId));
+      setError('');
+    } catch (err) {
+      setError(err.message || 'Kunne ikke laste kjøpte varer');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadItems();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [household.householdId]);
+
+  const addPurchasedItem = async (values) => {
+    setAddError('');
+    try {
+      await apiFetch('/items', {
+        method: 'POST',
+        body: JSON.stringify({
+          name: values.name,
+          category: 0,
+          price: values.price ? Number(values.price) : 0,
+          ownerId: currentUser.id,
+          householdId: household.householdId
+        })
+      });
+      await loadItems();
+    } catch (err) {
+      setAddError(err.message || 'Kunne ikke legge til vare');
+      throw err;
+    }
   };
 
   const addWishlistItem = (values) => {
     setWishlistItems((current) => [
-      { id: `w${Date.now()}`, name: values.name, url: values.url, addedBy: 'Deg' },
+      {
+        id: `w${Date.now()}`,
+        name: values.name,
+        url: values.url,
+        addedBy: currentUser?.name || currentUser?.username || 'Deg'
+      },
       ...current
     ]);
   };
@@ -191,8 +269,8 @@ export default function HouseholdPage({ household, onBack }) {
   const spenders = useMemo(() => {
     const totals = new Map();
     purchasedItems.forEach((item) => {
-      const amount = item.price ?? 0;
-      totals.set(item.addedBy, (totals.get(item.addedBy) ?? 0) + amount);
+      const name = memberDisplayName(item.owner);
+      totals.set(name, (totals.get(name) ?? 0) + (item.price ?? 0));
     });
     return [...totals.entries()]
       .map(([name, amount]) => ({ name, amount }))
@@ -211,6 +289,8 @@ export default function HouseholdPage({ household, onBack }) {
         ) : null}
       </header>
 
+      {error ? <div className="alert">{error}</div> : null}
+
       <section className="household-layout">
         <article className="card members-panel">
           <h2>Medlemmer</h2>
@@ -227,18 +307,20 @@ export default function HouseholdPage({ household, onBack }) {
           className="card mini-box purchased-box"
           role="button"
           tabIndex={0}
-          onClick={() => setOpenPanel('purchased')}
-          onKeyDown={(event) => event.key === 'Enter' && setOpenPanel('purchased')}
+          onClick={() => setOpenPanel('purchased-choice')}
+          onKeyDown={(event) => event.key === 'Enter' && setOpenPanel('purchased-choice')}
         >
           <div className="mini-box-header">
             <h3>Kjøpte varer</h3>
             <span className="badge">{purchasedItems.length}</span>
           </div>
-          <ItemPreviewList
-            items={purchasedItems}
-            renderRight={(item) => <span>{item.price ? `${item.price} kr` : ''}</span>}
-            onSelectItem={setSelectedPurchasedItem}
-          />
+          {loading ? <p>Laster…</p> : (
+            <ItemPreviewList
+              items={purchasedItems}
+              renderRight={(item) => <span>{item.price ? `${item.price} kr` : ''}</span>}
+              onSelectItem={setSelectedPurchasedItem}
+            />
+          )}
           <span className="mini-box-cta">+ Legg til vare</span>
         </article>
 
@@ -276,11 +358,28 @@ export default function HouseholdPage({ household, onBack }) {
         </article>
       </section>
 
+      {openPanel === 'purchased-choice' ? (
+        <AddChoiceModal
+          title="Kjøpte varer"
+          onClose={() => setOpenPanel(null)}
+          onChooseManual={() => setOpenPanel('purchased')}
+          onChooseReceipt={() => setOpenPanel('purchased-receipt')}
+        />
+      ) : null}
+
+      {openPanel === 'purchased-receipt' ? (
+        <ReceiptPlaceholderModal
+          onClose={() => setOpenPanel(null)}
+          onSwitchToManual={() => setOpenPanel('purchased')}
+        />
+      ) : null}
+
       {openPanel === 'purchased' ? (
         <ItemPanelModal
           title="Kjøpte varer"
           onClose={() => setOpenPanel(null)}
           onAddItem={addPurchasedItem}
+          error={addError}
           fields={[
             { key: 'name', placeholder: 'Varenavn', required: true },
             { key: 'price', placeholder: 'Pris', type: 'number' }
@@ -306,7 +405,7 @@ export default function HouseholdPage({ household, onBack }) {
           onClose={() => setSelectedPurchasedItem(null)}
           rows={[
             { label: 'Pris', value: selectedPurchasedItem.price ? `${selectedPurchasedItem.price} kr` : '—' },
-            { label: 'Kjøpt av', value: selectedPurchasedItem.addedBy }
+            { label: 'Kjøpt av', value: memberDisplayName(selectedPurchasedItem.owner) }
           ]}
         />
       ) : null}

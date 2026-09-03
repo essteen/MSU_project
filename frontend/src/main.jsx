@@ -5,12 +5,14 @@ import AuthModal from './components/AuthModal.jsx';
 import LandingPage from './components/LandingPage.jsx';
 import HouseholdOverview from './components/HouseholdOverview.jsx';
 import NotificationBell from './components/NotificationBell.jsx';
+import HouseholdPage from './pages/HouseholdPage.jsx';
 import './styles.css';
 
 function App() {
   const { user, logout } = useAuth();
   const [authModalOpen, setAuthModalOpen] = React.useState(false);
   const [authModalMode, setAuthModalMode] = React.useState('login');
+  const [selectedHousehold, setSelectedHousehold] = React.useState(null);
 
   return (
     <main className="app-shell">
@@ -52,8 +54,15 @@ function App() {
         </div>
       </header>
 
-      {user ? (
-        <HouseholdOverview />
+      {user && selectedHousehold ? (
+        <HouseholdPage
+          key={selectedHousehold.householdId}
+          household={selectedHousehold}
+          currentUser={user}
+          onBack={() => setSelectedHousehold(null)}
+        />
+      ) : user ? (
+        <HouseholdOverview onSelectHousehold={setSelectedHousehold} />
       ) : (
         <LandingPage
           onLogin={() => { setAuthModalMode('login'); setAuthModalOpen(true); }}
