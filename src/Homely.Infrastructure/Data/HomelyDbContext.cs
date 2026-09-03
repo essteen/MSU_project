@@ -11,6 +11,7 @@ public class HomelyDbContext : DbContext
     public DbSet<Household> Households => Set<Household>();
     public DbSet<User> Users => Set<User>();
     public DbSet<Item> Items => Set<Item>();
+    public DbSet<Wish> Wishes => Set<Wish>();
     public DbSet<HouseholdJoinRequest> HouseholdJoinRequests => Set<HouseholdJoinRequest>();
     // legg til flere DbSet<> etter behov, basert p� entities i Homely.Core
 
