@@ -3,6 +3,7 @@ using System;
 using Homely.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Homely.Infrastructure.Migrations
 {
     [DbContext(typeof(HomelyDbContext))]
-    partial class HomelyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260902123151_AddHouseholdMembership")]
+    partial class AddHouseholdMembership
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -86,42 +89,12 @@ namespace Homely.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("CreatedByUserId")
-                        .HasColumnType("uuid");
-
                     b.Property<string>("Name")
                         .HasColumnType("text");
 
                     b.HasKey("HouseholdId");
 
                     b.ToTable("Households");
-                });
-
-            modelBuilder.Entity("Homely.Core.Entities.HouseholdJoinRequest", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("HouseholdId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("RequestedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("HouseholdId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("HouseholdJoinRequests");
                 });
 
             modelBuilder.Entity("Homely.Core.Entities.Item", b =>
@@ -273,25 +246,6 @@ namespace Homely.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Expense");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Homely.Core.Entities.HouseholdJoinRequest", b =>
-                {
-                    b.HasOne("Homely.Core.Entities.Household", "Household")
-                        .WithMany()
-                        .HasForeignKey("HouseholdId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Homely.Core.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Household");
 
                     b.Navigation("User");
                 });

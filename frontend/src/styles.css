@@ -405,6 +405,223 @@ li span {
   }
 }
 
+.empty-state {
+  text-align: center;
+  color: var(--color-deep-ink);
+  opacity: 0.75;
+  padding: 40px 24px;
+}
+
+.household-card p {
+  color: var(--color-midnight-green);
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+.add-household-panel {
+  margin-bottom: 28px;
+}
+
+.tab-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.tab-button {
+  background: transparent;
+  color: var(--color-midnight-green);
+  border: 1px solid rgba(0, 96, 120, 0.2);
+}
+
+.tab-button.active {
+  background: var(--color-midnight-green);
+  color: white;
+}
+
+.list-row {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.list-row-info {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+}
+
+.list-row-info > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.household-icon {
+  flex-shrink: 0;
+  color: rgba(31, 42, 46, 0.55);
+}
+
+.household-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.household-card-header h2 {
+  margin: 0;
+}
+
+.member-icons {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.member-icon {
+  color: rgba(31, 42, 46, 0.45);
+}
+
+.member-icon-overflow {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-deep-ink);
+  opacity: 0.6;
+  margin-left: 2px;
+}
+
+.notification-bell {
+  position: relative;
+}
+
+.bell-button {
+  position: relative;
+  background: transparent;
+  color: var(--color-midnight-green);
+  border: 1px solid rgba(0, 96, 120, 0.2);
+  border-radius: 999px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.bell-button:hover {
+  background: rgba(0, 96, 120, 0.08);
+  color: var(--color-midnight-green);
+}
+
+.bell-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: var(--color-light-coral);
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 700;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+}
+
+.notification-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 320px;
+  max-width: 90vw;
+  background: var(--color-ice);
+  border-radius: 16px;
+  box-shadow: 0 20px 45px rgba(0, 96, 120, 0.22);
+  padding: 18px;
+  z-index: 1100;
+}
+
+.notification-dropdown h3 {
+  margin: 0 0 12px;
+  color: var(--color-midnight-green);
+  font-size: 1.05rem;
+}
+
+.notification-empty {
+  margin: 0;
+  color: var(--color-deep-ink);
+  opacity: 0.7;
+  font-size: 0.9rem;
+}
+
+.notification-item p {
+  margin: 0 0 8px;
+  font-size: 0.9rem;
+}
+
+.notification-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.notification-actions button {
+  flex: 1;
+  padding: 6px 10px;
+  font-size: 0.85rem;
+}
+
+.reject-button {
+  background: transparent;
+  color: var(--color-light-coral);
+  border: 1px solid rgba(227, 124, 120, 0.4);
+}
+
+.reject-button:hover {
+  background: rgba(227, 124, 120, 0.12);
+  color: var(--color-light-coral);
+}
+
+.pending-button {
+  background: rgba(31, 42, 46, 0.08);
+  color: var(--color-deep-ink);
+  opacity: 0.7;
+  cursor: default;
+}
+
+.pending-button:hover {
+  background: rgba(31, 42, 46, 0.08);
+  color: var(--color-deep-ink);
+  transform: none;
+}
+
+.pending-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.cancel-request-button {
+  background: transparent;
+  color: var(--color-light-coral);
+  border: none;
+  padding: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.cancel-request-button:hover {
+  background: transparent;
+  color: var(--color-light-coral);
+  transform: none;
+}
+
 .household-page {
   max-width: 1200px;
   margin: 0 auto;

@@ -19,7 +19,7 @@ public static class LoginEndpoint
 
             if (user is null)
             {
-                return Results.Json(new { error = "Invalid username/email or password." }, statusCode: StatusCodes.Status401Unauthorized);
+                return Results.Json(new { error = "Ugyldig brukernavn/e-post eller passord." }, statusCode: StatusCodes.Status401Unauthorized);
             }
 
             var token = tokenService.CreateToken(user);

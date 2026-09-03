@@ -53,7 +53,7 @@ export default function AuthModal({ isOpen, initialMode, onClose }) {
       setLoginPassword('');
       onClose();
     } catch (err) {
-      setError(err.message || 'Failed to log in');
+      setError(err.message || 'Kunne ikke logge inn');
     } finally {
       setSubmitting(false);
     }
@@ -64,19 +64,19 @@ export default function AuthModal({ isOpen, initialMode, onClose }) {
     setError('');
 
     if (!EMAIL_REGEX.test(email)) {
-      setError('Please enter a valid email address.');
+      setError('Vennligst skriv inn en gyldig e-postadresse.');
       return;
     }
     if (password !== confirmPassword) {
-      setError('Passwords do not match.');
+      setError('Passordene er ikke like.');
       return;
     }
     if (!isPasswordStrongEnough(password)) {
-      setError('Password must be at least 8 characters and include a number and an uppercase letter.');
+      setError('Passordet må være minst 8 tegn og inneholde et tall og en stor bokstav.');
       return;
     }
     if (!birthDate) {
-      setError('Please enter your birth date.');
+      setError('Vennligst skriv inn fødselsdato.');
       return;
     }
 
@@ -86,7 +86,7 @@ export default function AuthModal({ isOpen, initialMode, onClose }) {
       resetRegisterFields();
       onClose();
     } catch (err) {
-      setError(err.message || 'Failed to register');
+      setError(err.message || 'Kunne ikke registrere deg');
     } finally {
       setSubmitting(false);
     }
@@ -96,8 +96,8 @@ export default function AuthModal({ isOpen, initialMode, onClose }) {
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-card" onClick={(event) => event.stopPropagation()}>
         <div className="modal-header">
-          <h2>{mode === 'login' ? 'Log in' : 'Sign up'}</h2>
-          <button type="button" className="modal-close" onClick={onClose} aria-label="Close">×</button>
+          <h2>{mode === 'login' ? 'Logg inn' : 'Registrer deg'}</h2>
+          <button type="button" className="modal-close" onClick={onClose} aria-label="Lukk">×</button>
         </div>
 
         {error ? <div className="alert">{error}</div> : null}
@@ -106,64 +106,64 @@ export default function AuthModal({ isOpen, initialMode, onClose }) {
           <form onSubmit={handleLogin} className="stacked-form">
             <input
               type="text"
-              placeholder="Username or email"
+              placeholder="Brukernavn eller e-post"
               value={loginId}
               onChange={(event) => setLoginId(event.target.value)}
               required
             />
             <input
               type="password"
-              placeholder="Password"
+              placeholder="Passord"
               value={loginPassword}
               onChange={(event) => setLoginPassword(event.target.value)}
               required
             />
-            <button type="submit" disabled={submitting}>Log in</button>
+            <button type="submit" disabled={submitting}>Logg inn</button>
           </form>
         ) : (
           <form onSubmit={handleRegister} className="stacked-form">
             <input
               type="text"
-              placeholder="Username"
+              placeholder="Brukernavn"
               value={username}
               onChange={(event) => setUsername(event.target.value)}
               required
             />
             <input
               type="email"
-              placeholder="Email"
+              placeholder="E-post"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               required
             />
             <input
               type="text"
-              placeholder="Display name (optional)"
+              placeholder="Visningsnavn (valgfritt)"
               value={name}
               onChange={(event) => setName(event.target.value)}
             />
             <input
               type="date"
-              placeholder="Birth date"
+              placeholder="Fødselsdato"
               value={birthDate}
               onChange={(event) => setBirthDate(event.target.value)}
               required
             />
             <input
               type="password"
-              placeholder="Password"
+              placeholder="Passord"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               required
             />
             <input
               type="password"
-              placeholder="Confirm password"
+              placeholder="Bekreft passord"
               value={confirmPassword}
               onChange={(event) => setConfirmPassword(event.target.value)}
               required
             />
-            <button type="submit" disabled={submitting}>Sign up</button>
+            <button type="submit" disabled={submitting}>Registrer deg</button>
           </form>
         )}
 
@@ -172,7 +172,7 @@ export default function AuthModal({ isOpen, initialMode, onClose }) {
           className="modal-switch"
           onClick={() => { setError(''); setMode(mode === 'login' ? 'register' : 'login'); }}
         >
-          {mode === 'login' ? "Don't have an account? Sign up" : 'Already have an account? Log in'}
+          {mode === 'login' ? 'Har du ikke en konto? Registrer deg' : 'Har du allerede en konto? Logg inn'}
         </button>
       </div>
     </div>

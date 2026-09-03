@@ -4,18 +4,18 @@ export default function LandingPage({ onLogin, onSignUp }) {
   return (
     <section className="landing-hero">
       <div className="landing-copy">
-        <p className="eyebrow landing-fade" style={{ animationDelay: '0.05s' }}>Shared living, sorted</p>
-        <h1 className="landing-fade" style={{ animationDelay: '0.2s' }}>Welcome to Homely</h1>
+        <p className="eyebrow landing-fade" style={{ animationDelay: '0.05s' }}>Bofellesskap, ordnet</p>
+        <h1 className="landing-fade" style={{ animationDelay: '0.2s' }}>Velkommen til Homely</h1>
         <p className="landing-subtitle landing-fade" style={{ animationDelay: '0.4s' }}>
-          Keep track of your household&apos;s wishlist, purchases, and shared expenses
-          all in one place. Log in or create an account to get started.
+          Hold oversikt over husstandens ønskeliste, kjøp og delte utgifter
+          — alt på ett sted. Logg inn eller opprett en konto for å komme i gang.
         </p>
         <div className="landing-actions landing-fade" style={{ animationDelay: '0.6s' }}>
           <button type="button" className="auth-button primary" onClick={onSignUp}>
-            Sign up
+            Registrer deg
           </button>
           <button type="button" className="auth-button" onClick={onLogin}>
-            Log in
+            Logg inn
           </button>
         </div>
       </div>
