@@ -9,6 +9,8 @@ using Homely.Api.Features.Households.JoinRequests;
 using Homely.Api.Features.Items.CreateItem;
 using Homely.Api.Features.Items.GetItems;
 using Homely.Api.Features.Users.GetUsers;
+using Homely.Api.Features.Wishes.CreateWish;
+using Homely.Api.Features.Wishes.GetWishes;
 using Homely.Core.Entities;
 using Homely.Infrastructure.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -87,6 +89,8 @@ app.MapJoinRequests();
 app.MapGetUsers();
 app.MapCreateItem();
 app.MapGetItems();
+app.MapCreateWish();
+app.MapGetWishes();
 app.MapRegister();
 app.MapLogin();
 

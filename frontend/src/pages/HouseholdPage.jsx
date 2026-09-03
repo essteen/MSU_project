@@ -210,8 +210,10 @@ export default function HouseholdPage({ household, currentUser, onBack }) {
   const [purchasedItems, setPurchasedItems] = useState([]);
   const [wishlistItems, setWishlistItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [wishlistLoading, setWishlistLoading] = useState(true);
   const [error, setError] = useState('');
   const [addError, setAddError] = useState('');
+  const [wishlistAddError, setWishlistAddError] = useState('');
   const [openPanel, setOpenPanel] = useState(null);
   const [selectedPurchasedItem, setSelectedPurchasedItem] = useState(null);
   const [selectedWishlistItem, setSelectedWishlistItem] = useState(null);
@@ -229,8 +231,31 @@ export default function HouseholdPage({ household, currentUser, onBack }) {
     }
   };
 
+  const loadWishes = async () => {
+    try {
+      setWishlistLoading(true);
+      const data = await apiFetch('/wishes');
+      setWishlistItems(
+        (data ?? [])
+          .filter((wish) => wish.householdId === household.householdId)
+          .map((wish) => ({
+            id: wish.id,
+            name: wish.title,
+            url: wish.link,
+            addedBy: memberDisplayName(wish.addedByUser)
+          }))
+      );
+      setError('');
+    } catch (err) {
+      setError(err.message || 'Kunne ikke laste ønskelisten');
+    } finally {
+      setWishlistLoading(false);
+    }
+  };
+
   useEffect(() => {
     loadItems();
+    loadWishes();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [household.householdId]);
 
@@ -254,16 +279,24 @@ export default function HouseholdPage({ household, currentUser, onBack }) {
     }
   };
 
-  const addWishlistItem = (values) => {
-    setWishlistItems((current) => [
-      {
-        id: `w${Date.now()}`,
-        name: values.name,
-        url: values.url,
-        addedBy: currentUser?.name || currentUser?.username || 'Deg'
-      },
-      ...current
-    ]);
+  const addWishlistItem = async (values) => {
+    setWishlistAddError('');
+    try {
+      await apiFetch('/wishes', {
+        method: 'POST',
+        body: JSON.stringify({
+          title: values.name,
+          link: values.url || null,
+          price: null,
+          addedByUserId: currentUser.id,
+          householdId: household.householdId
+        })
+      });
+      await loadWishes();
+    } catch (err) {
+      setWishlistAddError(err.message || 'Kunne ikke legge til i ønskelisten');
+      throw err;
+    }
   };
 
   const spenders = useMemo(() => {
@@ -335,17 +368,19 @@ export default function HouseholdPage({ household, currentUser, onBack }) {
             <h3>Ønskeliste</h3>
             <span className="badge">{wishlistItems.length}</span>
           </div>
-          <ItemPreviewList
-            items={wishlistItems}
-            renderRight={(item) =>
-              item.url ? (
-                <a href={item.url} target="_blank" rel="noreferrer" onClick={(event) => event.stopPropagation()}>
-                  Se produkt
-                </a>
-              ) : null
-            }
-            onSelectItem={setSelectedWishlistItem}
-          />
+          {wishlistLoading ? <p>Laster…</p> : (
+            <ItemPreviewList
+              items={wishlistItems}
+              renderRight={(item) =>
+                item.url ? (
+                  <a href={item.url} target="_blank" rel="noreferrer" onClick={(event) => event.stopPropagation()}>
+                    Se produkt
+                  </a>
+                ) : null
+              }
+              onSelectItem={setSelectedWishlistItem}
+            />
+          )}
           <span className="mini-box-cta">+ Legg til i ønskeliste</span>
         </article>
 
@@ -392,6 +427,7 @@ export default function HouseholdPage({ household, currentUser, onBack }) {
           title="Ønskeliste"
           onClose={() => setOpenPanel(null)}
           onAddItem={addWishlistItem}
+          error={wishlistAddError}
           fields={[
             { key: 'name', placeholder: 'Varenavn', required: true },
             { key: 'url', placeholder: 'Lenke til produkt (valgfritt)', type: 'url' }
