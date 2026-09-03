@@ -6,7 +6,7 @@ function formatMemberCount(count) {
   return count === 1 ? '1 medlem' : `${count} medlemmer`;
 }
 
-export default function HouseholdOverview() {
+export default function HouseholdOverview({ onSelectHousehold }) {
   const [households, setHouseholds] = useState([]);
   const [allHouseholds, setAllHouseholds] = useState([]);
   const [myRequests, setMyRequests] = useState([]);
@@ -208,7 +208,14 @@ export default function HouseholdOverview() {
       ) : (
         <div className="card-grid">
           {households.map((household) => (
-            <article className="card household-card" key={household.householdId}>
+            <article
+              className="card household-card clickable-row"
+              key={household.householdId}
+              role="button"
+              tabIndex={0}
+              onClick={() => onSelectHousehold(household)}
+              onKeyDown={(event) => event.key === 'Enter' && onSelectHousehold(household)}
+            >
               <div className="household-card-header">
                 <HouseIcon className="household-icon" />
                 <h2>{household.name}</h2>
