@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { apiFetch } from '../api.js';
 
 const EXPENSE_COLORS = ['#006078', '#82BAC4', '#E37C78', '#FFD4D1', '#1F2A2E', '#DFF3F8'];
@@ -34,7 +34,7 @@ function ItemPreviewList({ items, renderRight, onSelectItem }) {
       <ul className="mini-box-preview">
         {visibleItems.map((item) => (
           <li
-            key={item.id}
+            key={item.id ?? item.itemId}
             className="clickable-row"
             onClick={(event) => { event.stopPropagation(); onSelectItem(item); }}
           >
@@ -89,7 +89,23 @@ function ExpensesChart({ spenders }) {
   );
 }
 
-function ItemDetailModal({ title, rows, onClose }) {
+function ItemDetailModal({ title, rows, onClose, onDelete }) {
+  const [confirming, setConfirming] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleConfirmDelete = async () => {
+    setDeleting(true);
+    setError('');
+    try {
+      await onDelete();
+      onClose();
+    } catch (err) {
+      setError(err.message || 'Kunne ikke fjerne varen');
+      setDeleting(false);
+    }
+  };
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-card" onClick={(event) => event.stopPropagation()}>
@@ -97,6 +113,8 @@ function ItemDetailModal({ title, rows, onClose }) {
           <h2>{title}</h2>
           <button type="button" className="modal-close" onClick={onClose} aria-label="Lukk">×</button>
         </div>
+
+        {error ? <div className="alert">{error}</div> : null}
 
         <ul className="detail-rows">
           {rows.map((row) => (
@@ -106,6 +124,26 @@ function ItemDetailModal({ title, rows, onClose }) {
             </li>
           ))}
         </ul>
+
+        {onDelete ? (
+          confirming ? (
+            <div className="detail-delete-confirm">
+              <span>Er du sikker på at du vil fjerne denne varen?</span>
+              <div className="detail-delete-actions">
+                <button type="button" className="reject-button" disabled={deleting} onClick={handleConfirmDelete}>
+                  {deleting ? 'Fjerner…' : 'Ja, fjern'}
+                </button>
+                <button type="button" className="modal-switch" disabled={deleting} onClick={() => setConfirming(false)}>
+                  Avbryt
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button type="button" className="reject-button detail-delete-button" onClick={() => setConfirming(true)}>
+              Fjern vare
+            </button>
+          )
+        ) : null}
       </div>
     </div>
   );
@@ -135,18 +173,285 @@ function AddChoiceModal({ title, onClose, onChooseManual, onChooseReceipt }) {
   );
 }
 
-function ReceiptPlaceholderModal({ onClose, onSwitchToManual }) {
+function ReceiptUploadModal({ onClose, onAddItem, onRemoveItem, onSwitchToManual }) {
+  const [mode, setMode] = useState('choose'); // choose | upload | camera-live | camera-preview
+  const [file, setFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const [scanning, setScanning] = useState(false);
+  const [error, setError] = useState('');
+  const [result, setResult] = useState(null);
+  const [addingIndex, setAddingIndex] = useState(null);
+  const [addedItems, setAddedItems] = useState(new Map()); // index -> itemId
+  const [undoingIndex, setUndoingIndex] = useState(null);
+
+  const videoRef = useRef(null);
+  const streamRef = useRef(null);
+
+  const stopCamera = () => {
+    streamRef.current?.getTracks().forEach((track) => track.stop());
+    streamRef.current = null;
+  };
+
+  useEffect(() => {
+    if (mode !== 'camera-live') {
+      return undefined;
+    }
+
+    let cancelled = false;
+    setError('');
+
+    navigator.mediaDevices
+      .getUserMedia({ video: { facingMode: 'environment' } })
+      .then((stream) => {
+        if (cancelled) {
+          stream.getTracks().forEach((track) => track.stop());
+          return;
+        }
+        streamRef.current = stream;
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setError('Fikk ikke tilgang til kamera. Prøv å laste opp et bilde i stedet.');
+          setMode('choose');
+        }
+      });
+
+    return () => {
+      cancelled = true;
+      stopCamera();
+    };
+  }, [mode]);
+
+  useEffect(() => () => stopCamera(), []);
+
+  const handleCapture = () => {
+    const video = videoRef.current;
+    if (!video) {
+      return;
+    }
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+    canvas.toBlob((blob) => {
+      if (!blob) {
+        return;
+      }
+      setFile(new File([blob], 'kvittering.jpg', { type: 'image/jpeg' }));
+      setPreviewUrl(URL.createObjectURL(blob));
+      stopCamera();
+      setMode('camera-preview');
+    }, 'image/jpeg', 0.9);
+  };
+
+  const handleRetake = () => {
+    setFile(null);
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(null);
+    }
+    setMode('camera-live');
+  };
+
+  const handleScan = async (event) => {
+    event.preventDefault();
+    if (!file) {
+      return;
+    }
+    setScanning(true);
+    setError('');
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const data = await apiFetch('/api/receipts/scan', { method: 'POST', body: formData });
+      setResult(data);
+    } catch (err) {
+      setError(err.message || 'Kunne ikke lese kvitteringen');
+    } finally {
+      setScanning(false);
+    }
+  };
+
+  const handleAddItem = async (item, index) => {
+    setAddingIndex(index);
+    try {
+      const created = await onAddItem({ name: item.name, price: item.price });
+      setAddedItems((current) => new Map(current).set(index, created?.itemId));
+    } catch {
+      // error already surfaced via the parent's addError state
+    } finally {
+      setAddingIndex(null);
+    }
+  };
+
+  const handleUndoItem = async (index) => {
+    const itemId = addedItems.get(index);
+    if (itemId === undefined) {
+      return;
+    }
+    setUndoingIndex(index);
+    try {
+      await onRemoveItem(itemId);
+      setAddedItems((current) => {
+        const next = new Map(current);
+        next.delete(index);
+        return next;
+      });
+    } catch {
+      // error already surfaced via the parent's addError state
+    } finally {
+      setUndoingIndex(null);
+    }
+  };
+
+  const handleClose = () => {
+    stopCamera();
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
+    onClose();
+  };
+
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay" onClick={handleClose}>
       <div className="modal-card" onClick={(event) => event.stopPropagation()}>
         <div className="modal-header">
           <h2>Legg til via kvittering</h2>
-          <button type="button" className="modal-close" onClick={onClose} aria-label="Lukk">×</button>
+          <button type="button" className="modal-close" onClick={handleClose} aria-label="Lukk">×</button>
         </div>
 
-        <p>Automatisk gjenkjenning av kvitteringer kommer senere. Da vil du kunne laste opp et bilde, og feltene fylles ut automatisk.</p>
+        {error ? <div className="alert">{error}</div> : null}
 
-        <button type="button" onClick={onSwitchToManual}>Legg til manuelt i mellomtiden</button>
+        {!result ? (
+          <>
+            {mode === 'choose' ? (
+              <div className="add-choice-list">
+                <button type="button" className="add-choice-button" onClick={() => setMode('upload')}>
+                  <strong>Last opp bilde</strong>
+                  <span>Velg et bilde av kvitteringen fra enheten din</span>
+                </button>
+                <button type="button" className="add-choice-button" onClick={() => setMode('camera-live')}>
+                  <strong>Ta bilde av kvittering</strong>
+                  <span>Bruk kameraet til å ta et bilde direkte</span>
+                </button>
+              </div>
+            ) : null}
+
+            {mode === 'upload' ? (
+              <form onSubmit={handleScan} className="stacked-form">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(event) => setFile(event.target.files?.[0] ?? null)}
+                  required
+                />
+                <button type="submit" disabled={!file || scanning}>
+                  {scanning ? 'Leser kvittering…' : 'Skann kvittering'}
+                </button>
+                <button type="button" className="modal-switch" onClick={() => setMode('choose')}>
+                  Tilbake
+                </button>
+              </form>
+            ) : null}
+
+            {mode === 'camera-live' ? (
+              <div className="camera-capture">
+                <video ref={videoRef} autoPlay playsInline muted className="camera-preview" />
+                <div className="camera-actions">
+                  <button type="button" onClick={handleCapture}>Ta bilde</button>
+                  <button type="button" className="modal-switch" onClick={() => setMode('choose')}>
+                    Avbryt
+                  </button>
+                </div>
+              </div>
+            ) : null}
+
+            {mode === 'camera-preview' ? (
+              <div className="camera-capture">
+                {previewUrl ? (
+                  <img src={previewUrl} alt="Bilde av kvittering" className="camera-preview-image" />
+                ) : null}
+                <form onSubmit={handleScan} className="stacked-form">
+                  <button type="submit" disabled={scanning}>
+                    {scanning ? 'Leser kvittering…' : 'Skann kvittering'}
+                  </button>
+                  <button type="button" className="modal-switch" onClick={handleRetake}>
+                    Ta bildet på nytt
+                  </button>
+                </form>
+              </div>
+            ) : null}
+
+            {mode === 'choose' ? (
+              <button type="button" className="modal-switch" onClick={onSwitchToManual}>
+                Legg til manuelt i stedet
+              </button>
+            ) : null}
+          </>
+        ) : (
+          <div className="receipt-result">
+            <div className="receipt-summary">
+              <strong>{result.merchantName || 'Ukjent butikk'}</strong>
+              <span>
+                {result.transactionDate ? new Date(result.transactionDate).toLocaleDateString('no-NO') : 'Ukjent dato'}
+                {result.total ? ` · Totalt ${result.total} kr` : ''}
+              </span>
+            </div>
+
+            {result.items.length === 0 ? (
+              <p>Fant ingen varer på kvitteringen.</p>
+            ) : (
+              <ul>
+                {result.items.map((item, index) => {
+                  const isAdded = addedItems.has(index);
+                  return (
+                    <li key={index} className="list-row">
+                      <div>
+                        <strong>{item.name || 'Ukjent vare'}</strong>
+                        <span>{item.price} kr</span>
+                      </div>
+                      {isAdded ? (
+                        <div className="pending-actions">
+                          <button type="button" disabled className="pending-button">Lagt til</button>
+                          <button
+                            type="button"
+                            className="cancel-request-button"
+                            disabled={undoingIndex === index}
+                            onClick={() => handleUndoItem(index)}
+                          >
+                            {undoingIndex === index ? 'Angrer…' : 'Angre'}
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          disabled={addingIndex === index}
+                          onClick={() => handleAddItem(item, index)}
+                        >
+                          {addingIndex === index ? 'Legger til…' : 'Legg til'}
+                        </button>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+
+            <div className="receipt-result-actions">
+              <button type="button" onClick={handleClose}>Ferdig</button>
+              <button
+                type="button"
+                className="modal-switch"
+                onClick={() => { setResult(null); setFile(null); setMode('choose'); }}
+              >
+                Skann en annen kvittering
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -262,7 +567,7 @@ export default function HouseholdPage({ household, currentUser, onBack }) {
   const addPurchasedItem = async (values) => {
     setAddError('');
     try {
-      await apiFetch('/items', {
+      const created = await apiFetch('/items', {
         method: 'POST',
         body: JSON.stringify({
           name: values.name,
@@ -273,8 +578,20 @@ export default function HouseholdPage({ household, currentUser, onBack }) {
         })
       });
       await loadItems();
+      return created;
     } catch (err) {
       setAddError(err.message || 'Kunne ikke legge til vare');
+      throw err;
+    }
+  };
+
+  const removePurchasedItem = async (itemId) => {
+    setAddError('');
+    try {
+      await apiFetch(`/items/${itemId}`, { method: 'DELETE' });
+      await loadItems();
+    } catch (err) {
+      setAddError(err.message || 'Kunne ikke fjerne vare');
       throw err;
     }
   };
@@ -403,8 +720,10 @@ export default function HouseholdPage({ household, currentUser, onBack }) {
       ) : null}
 
       {openPanel === 'purchased-receipt' ? (
-        <ReceiptPlaceholderModal
+        <ReceiptUploadModal
           onClose={() => setOpenPanel(null)}
+          onAddItem={addPurchasedItem}
+          onRemoveItem={removePurchasedItem}
           onSwitchToManual={() => setOpenPanel('purchased')}
         />
       ) : null}
@@ -439,6 +758,7 @@ export default function HouseholdPage({ household, currentUser, onBack }) {
         <ItemDetailModal
           title={selectedPurchasedItem.name}
           onClose={() => setSelectedPurchasedItem(null)}
+          onDelete={() => removePurchasedItem(selectedPurchasedItem.itemId)}
           rows={[
             { label: 'Pris', value: selectedPurchasedItem.price ? `${selectedPurchasedItem.price} kr` : '—' },
             { label: 'Kjøpt av', value: memberDisplayName(selectedPurchasedItem.owner) }
