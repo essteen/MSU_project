@@ -9,6 +9,8 @@ jobs:
     steps:
       - name: Checkout kode
         uses: actions/checkout@v4
+      - name: Kjør tester
+        run: dotnet test tests/Homely.Api/Homely.Api.csproj
       - name: Logg inn p� Azure
         uses: azure/login@v2
         with:
