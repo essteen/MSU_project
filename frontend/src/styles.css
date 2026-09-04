@@ -808,6 +808,32 @@ li span {
   color: var(--color-midnight-green);
 }
 
+.detail-delete-button {
+  width: 100%;
+  margin-top: 18px;
+}
+
+.detail-delete-confirm {
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.detail-delete-confirm > span {
+  font-size: 0.9rem;
+  color: var(--color-deep-ink);
+}
+
+.detail-delete-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.detail-delete-actions button {
+  flex: 1;
+}
+
 .mini-box-preview li a {
   color: var(--color-midnight-green);
   font-weight: 600;
@@ -920,4 +946,63 @@ li span {
 .add-choice-button span {
   font-size: 0.85rem;
   opacity: 0.8;
+}
+
+.receipt-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: rgba(130, 186, 196, 0.12);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+}
+
+.receipt-summary strong {
+  color: var(--color-midnight-green);
+}
+
+.receipt-summary span {
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+.receipt-result ul {
+  margin-bottom: 16px;
+}
+
+.receipt-result .list-row > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.receipt-result-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.camera-capture {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.camera-preview,
+.camera-preview-image {
+  width: 100%;
+  max-height: 320px;
+  border-radius: 12px;
+  background: #000;
+  object-fit: cover;
+}
+
+.camera-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.camera-actions button {
+  flex: 1;
 }

@@ -10,8 +10,11 @@ export async function apiFetch(url, options = {}) {
     // ignore malformed stored auth
   }
 
+  const isFormData = options.body instanceof FormData;
+  const defaultHeaders = isFormData ? {} : { 'Content-Type': 'application/json' };
+
   const response = await fetch(url, {
-    headers: { 'Content-Type': 'application/json', ...authHeader, ...(options.headers ?? {}) },
+    headers: { ...defaultHeaders, ...authHeader, ...(options.headers ?? {}) },
     ...options
   });
 
