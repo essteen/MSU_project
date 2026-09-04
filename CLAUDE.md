@@ -20,7 +20,13 @@ feature scope (Wishes, Bought/have items, Expenses).
 - Controllers should be thin - logic belongs in services
 - React: Functional components with hooks, no class components
 - All new endpoints need a matching test
-
+- Keep functions short - if a method does more than one thing, split it
+- Never copy-paste logic - extract a shared method or component instead
+- Use descriptive names: `GetRecipesByUserId` not `GetData`, `isLoading` not `flag`
+- No magic numbers or strings - use named constants
+- Avoid deep nesting - prefer early returns over nested if-else
+- Delete dead code instead of commenting it out
+- If the same logic appears in two places, that's a signal to refactor, not duplicate
 ## Never do this
 - Never guess an Azure resource name, connection string, or API signature - check the actual file or ask
 - Never claim a command works without running it first
@@ -34,7 +40,9 @@ feature scope (Wishes, Bought/have items, Expenses).
   fallback to `index.html`)
 - Build: `dotnet build Homely.slnx`
 - Restore: `dotnet restore Homely.slnx`
-- There are no test projects in the solution yet.
+- Test: `dotnet test tests/Homely.Api.Tests/Homely.Api.Tests.csproj` — xUnit project
+  testing `Homely.Api` feature handlers directly against an EF Core In-Memory
+  `HomelyDbContext` (via the `TestDb.Create()` helper), no real database needed.
 
 ### Frontend (`frontend/`)
 - Install deps: `npm install` (run inside `frontend/`)

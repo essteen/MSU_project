@@ -7,12 +7,15 @@ using Homely.Api.Features.Households.GetMyHouseholds;
 using Homely.Api.Features.Households.JoinHousehold;
 using Homely.Api.Features.Households.JoinRequests;
 using Homely.Api.Features.Items.CreateItem;
+using Homely.Api.Features.Items.DeleteItem;
 using Homely.Api.Features.Items.GetItems;
+using Homely.Api.Features.Receipts.ScanReceipt;
 using Homely.Api.Features.Users.GetUsers;
 using Homely.Api.Features.Wishes.CreateWish;
 using Homely.Api.Features.Wishes.GetWishes;
 using Homely.Core.Entities;
 using Homely.Infrastructure.Data;
+using Homely.Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -40,6 +43,7 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 
 builder.Services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddSingleton<TokenService>();
+builder.Services.AddScoped<IReceiptService, ReceiptService>();
 
 var jwtSection = builder.Configuration.GetSection("Jwt");
 var jwtKey = jwtSection["Key"];
@@ -79,6 +83,8 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<HomelyDbContext>();
     db.Database.Migrate();
+
+    scope.ServiceProvider.GetRequiredService<IReceiptService>();
 }
 
 app.MapCreateHousehold();
@@ -89,8 +95,10 @@ app.MapJoinRequests();
 app.MapGetUsers();
 app.MapCreateItem();
 app.MapGetItems();
+app.MapDeleteItem();
 app.MapCreateWish();
 app.MapGetWishes();
+app.MapScanReceipt();
 app.MapRegister();
 app.MapLogin();
 
