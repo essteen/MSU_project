@@ -11,4 +11,5 @@ public class Household
     public List<Item>? Items { get; set; }
     public List<Wish>? Wishes { get; set; }
     public List<Expense>? Expenses { get; set; }
+    public List<CalendarEvent> CalendarEvents { get; set; } = new();
 }

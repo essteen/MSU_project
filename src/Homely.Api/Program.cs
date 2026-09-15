@@ -1,6 +1,7 @@
 using Homely.Api.Auth;
 using Homely.Api.Features.Auth.Login;
 using Homely.Api.Features.Auth.Register;
+using Homely.Api.Features.CalendarEvents;
 using Homely.Api.Features.Households.CreateHousehold;
 using Homely.Api.Features.Households.GetHouseholds;
 using Homely.Api.Features.Households.GetMyHouseholds;
@@ -16,6 +17,7 @@ using Homely.Api.Features.Wishes.GetWishes;
 using Homely.Core.Entities;
 using Homely.Infrastructure.Data;
 using Homely.Infrastructure.Services;
+using Homely.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -44,6 +46,7 @@ builder.Services.ConfigureHttpJsonOptions(options =>
 builder.Services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddSingleton<TokenService>();
 builder.Services.AddScoped<IReceiptService, ReceiptService>();
+builder.Services.AddScoped<ICalendarEventRepository, CalendarEventRepository>();
 
 var jwtSection = builder.Configuration.GetSection("Jwt");
 var jwtKey = jwtSection["Key"];
@@ -99,6 +102,7 @@ app.MapDeleteItem();
 app.MapCreateWish();
 app.MapGetWishes();
 app.MapScanReceipt();
+app.MapCalendarEvents();
 app.MapRegister();
 app.MapLogin();
 

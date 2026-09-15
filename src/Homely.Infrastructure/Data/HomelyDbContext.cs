@@ -13,6 +13,7 @@ public class HomelyDbContext : DbContext
     public DbSet<Item> Items => Set<Item>();
     public DbSet<Wish> Wishes => Set<Wish>();
     public DbSet<HouseholdJoinRequest> HouseholdJoinRequests => Set<HouseholdJoinRequest>();
+    public DbSet<CalendarEvent> CalendarEvents => Set<CalendarEvent>();
     // legg til flere DbSet<> etter behov, basert p� entities i Homely.Core
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -21,6 +22,25 @@ public class HomelyDbContext : DbContext
         {
             entity.HasIndex(u => u.Email).IsUnique().HasFilter("Email <> ''");
             entity.HasIndex(u => u.Username).IsUnique().HasFilter("Username <> ''");
+        });
+
+        modelBuilder.Entity<CalendarEvent>(entity =>
+        {
+            entity.HasIndex(calendarEvent => new
+            {
+                calendarEvent.HouseholdId,
+                calendarEvent.StartTime
+            });
+
+            entity.HasOne(calendarEvent => calendarEvent.Household)
+                .WithMany(household => household.CalendarEvents)
+                .HasForeignKey(calendarEvent => calendarEvent.HouseholdId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(calendarEvent => calendarEvent.CreatedByUser)
+                .WithMany()
+                .HasForeignKey(calendarEvent => calendarEvent.CreatedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
     }
 }

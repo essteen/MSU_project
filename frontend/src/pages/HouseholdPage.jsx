@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { apiFetch } from '../api.js';
+import HouseholdCalendar from '../components/HouseholdCalendar.jsx';
 
 const EXPENSE_COLORS = ['#006078', '#82BAC4', '#E37C78', '#FFD4D1', '#1F2A2E', '#DFF3F8'];
 const MEMBER_EMOJIS = ['🦊', '🐼', '🐸', '🐨', '🐰', '🐯', '🐷', '🐵', '🐶', '🐱', '🐮', '🐭'];
@@ -709,6 +710,8 @@ export default function HouseholdPage({ household, currentUser, onBack }) {
           <ExpensesChart spenders={spenders} />
         </article>
       </section>
+
+      <HouseholdCalendar household={household} members={members} />
 
       {openPanel === 'purchased-choice' ? (
         <AddChoiceModal
