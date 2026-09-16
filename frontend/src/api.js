@@ -1,3 +1,5 @@
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
+
 export async function apiFetch(url, options = {}) {
   let authHeader = {};
   try {
@@ -13,7 +15,7 @@ export async function apiFetch(url, options = {}) {
   const isFormData = options.body instanceof FormData;
   const defaultHeaders = isFormData ? {} : { 'Content-Type': 'application/json' };
 
-  const response = await fetch(url, {
+  const response = await fetch(`${API_BASE_URL}${url}`, {
     headers: { ...defaultHeaders, ...authHeader, ...(options.headers ?? {}) },
     ...options
   });

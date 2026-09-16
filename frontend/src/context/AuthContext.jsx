@@ -1,11 +1,12 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { API_BASE_URL } from '../api.js';
 
 const AuthContext = createContext(null);
 
 const STORAGE_KEY = 'homely.auth';
 
 async function authFetch(url, options = {}) {
-  const response = await fetch(url, {
+  const response = await fetch(`${API_BASE_URL}${url}`, {
     headers: { 'Content-Type': 'application/json', ...(options.headers ?? {}) },
     ...options
   });
