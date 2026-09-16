@@ -52,9 +52,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nuget-
       - name: Restore dependencies
-        run: dotnet restore Homely.slnx
+        run: dotnet restore tests/Homely.Api.Tests/Homely.Api.Tests.csproj
       - name: Build backend
-        run: dotnet build Homely.slnx --no-restore
+        run: dotnet build tests/Homely.Api.Tests/Homely.Api.Tests.csproj --no-restore
       - name: Run tests
         run: dotnet test tests/Homely.Api.Tests/Homely.Api.Tests.csproj --no-build
 
