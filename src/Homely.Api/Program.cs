@@ -79,8 +79,6 @@ var app = builder.Build();
 app.UseCors("FrontendPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseDefaultFiles();
-app.UseStaticFiles();
 
 using (var scope = app.Services.CreateScope())
 {
@@ -105,7 +103,5 @@ app.MapScanReceipt();
 app.MapCalendarEvents();
 app.MapRegister();
 app.MapLogin();
-
-app.MapFallbackToFile("index.html");
 
 app.Run();

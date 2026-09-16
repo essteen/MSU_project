@@ -5,18 +5,18 @@ on:
       - main
 jobs:
   changes:
-    name: Oppdag endringer
+    name: Detect changes
     runs-on: ubuntu-latest
     outputs:
       backend: ${{ steps.filter.outputs.backend }}
       frontend: ${{ steps.filter.outputs.frontend }}
       infra: ${{ steps.filter.outputs.infra }}
     steps:
-      - name: Checkout kode
+      - name: Checkout code
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - name: Filtrer endrede filer
+      - name: Filter changed files
         id: filter
         uses: dorny/paths-filter@v4
         with:
@@ -38,24 +38,24 @@ jobs:
     if: needs.changes.outputs.backend == 'true'
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout kode
+      - name: Checkout code
         uses: actions/checkout@v7
-      - name: Sett opp .NET
+      - name: Set up .NET
         uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '8.0.x'
-      - name: Cache NuGet-pakker
+      - name: Cache NuGet packages
         uses: actions/cache@v5
         with:
           path: ~/.nuget/packages
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
           restore-keys: |
             ${{ runner.os }}-nuget-
-      - name: Gjenopprett avhengigheter
+      - name: Restore dependencies
         run: dotnet restore Homely.slnx
-      - name: Bygg backend
+      - name: Build backend
         run: dotnet build Homely.slnx --no-restore
-      - name: Kjør tester
+      - name: Run tests
         run: dotnet test tests/Homely.Api.Tests/Homely.Api.Tests.csproj --no-build
 
   frontend-build:
@@ -64,61 +64,98 @@ jobs:
     if: needs.changes.outputs.frontend == 'true'
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout kode
+      - name: Checkout code
         uses: actions/checkout@v7
-      - name: Sett opp Node
+      - name: Set up Node
         uses: actions/setup-node@v6
         with:
           node-version: '20'
           cache: 'npm'
           cache-dependency-path: frontend/package-lock.json
-      - name: Installer avhengigheter
+      - name: Install dependencies
         working-directory: frontend
         run: npm ci
-      - name: Bygg frontend
+      - name: Build frontend
         working-directory: frontend
         run: npm run build
-      - name: Kjør frontend-tester
+      - name: Run frontend tests
         working-directory: frontend
         run: npm run test --if-present
 
-  docker-build-push:
-    name: Bygg og push Docker-image
-    needs: [changes, backend-test, frontend-build]
-    if: |
-      always() &&
-      (needs.changes.outputs.backend == 'true' || needs.changes.outputs.frontend == 'true') &&
-      (needs.backend-test.result == 'success' || needs.backend-test.result == 'skipped') &&
-      (needs.frontend-build.result == 'success' || needs.frontend-build.result == 'skipped')
+  backend-image:
+    name: Build and push backend image
+    needs: [changes, backend-test]
+    if: needs.changes.outputs.backend == 'true' && needs.backend-test.result == 'success'
     runs-on: ubuntu-latest
     outputs:
       image: ${{ steps.image.outputs.tag }}
     steps:
-      - name: Checkout kode
+      - name: Checkout code
         uses: actions/checkout@v7
-      - name: Logg inn på Azure
+      - name: Log in to Azure
         uses: azure/login@v3
         with:
           creds: ${{ secrets.SETUP }}
-      - name: Logg inn på ACR
+      - name: Log in to ACR
         run: az acr login --name acrhomelydev01
-      - name: Bygg og push image
+      - name: Build and push image
         id: image
         run: |
-          IMAGE_TAG=acrhomelydev01.azurecr.io/homely:${{ github.sha }}
+          IMAGE_TAG=acrhomelydev01.azurecr.io/homely-api:${{ github.sha }}
           docker build -t "$IMAGE_TAG" -f src/Homely.Api/Dockerfile .
           docker push "$IMAGE_TAG"
           echo "tag=$IMAGE_TAG" >> "$GITHUB_OUTPUT"
 
-  deploy:
-    name: Deploy til Container Apps
-    needs: docker-build-push
-    if: needs.docker-build-push.result == 'success'
+  frontend-image:
+    name: Build and push frontend image
+    needs: [changes, frontend-build]
+    if: needs.changes.outputs.frontend == 'true' && needs.frontend-build.result == 'success'
     runs-on: ubuntu-latest
+    outputs:
+      image: ${{ steps.image.outputs.tag }}
     steps:
-      - name: Logg inn på Azure
+      - name: Checkout code
+        uses: actions/checkout@v7
+      - name: Log in to Azure
         uses: azure/login@v3
         with:
           creds: ${{ secrets.SETUP }}
-      - name: Oppdater Container App med nytt image
-        run: az containerapp update --name homely-api --resource-group "rg-homely" --image ${{ needs.docker-build-push.outputs.image }}
+      - name: Log in to ACR
+        run: az acr login --name acrhomelydev01
+      - name: Build and push image
+        id: image
+        run: |
+          IMAGE_TAG=acrhomelydev01.azurecr.io/homely-frontend:${{ github.sha }}
+          docker build \
+            -t "$IMAGE_TAG" \
+            -f frontend/Dockerfile \
+            --build-arg VITE_API_BASE_URL=https://homely-api.bluestone-27664e24.norwayeast.azurecontainerapps.io \
+            frontend
+          docker push "$IMAGE_TAG"
+          echo "tag=$IMAGE_TAG" >> "$GITHUB_OUTPUT"
+
+  deploy-backend:
+    name: Deploy backend to Container Apps
+    needs: backend-image
+    if: needs.backend-image.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Log in to Azure
+        uses: azure/login@v3
+        with:
+          creds: ${{ secrets.SETUP }}
+      - name: Update Container App with new image
+        run: az containerapp update --name homely-api --resource-group "rg-homely" --image ${{ needs.backend-image.outputs.image }}
+
+  deploy-frontend:
+    name: Deploy frontend to Container Apps
+    needs: frontend-image
+    if: needs.frontend-image.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Log in to Azure
+        uses: azure/login@v3
+        with:
+          creds: ${{ secrets.SETUP }}
+      - name: Update Container App with new image
+        run: az containerapp update --name homely-web --resource-group "rg-homely" --image ${{ needs.frontend-image.outputs.image }}
