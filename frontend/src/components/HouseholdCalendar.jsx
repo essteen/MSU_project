@@ -38,8 +38,22 @@ function memberDisplayName(member) {
   return member?.name || member?.username || 'Ukjent';
 }
 
+function isSharedEvent(calendarEvent) {
+  return calendarEvent.eventType === 'Shared' || calendarEvent.eventType === 1;
+}
+
+function formatDateTime(value) {
+  return new Date(value).toLocaleString('no-NO', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}
+
 export function colorForEvent(calendarEvent, members) {
-  if (calendarEvent.eventType === 'Shared' || calendarEvent.eventType === 1) {
+  if (isSharedEvent(calendarEvent)) {
     return SHARED_EVENT_COLOR;
   }
 
@@ -123,11 +137,85 @@ function EventForm({ householdId, onCreated }) {
   );
 }
 
-export default function HouseholdCalendar({ household, members }) {
+function EventDetailModal({ calendarEvent, members, canDelete, onClose, onDelete }) {
+  const creator = members.find((member) => member.id === calendarEvent.createdByUserId);
+  const [confirming, setConfirming] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleConfirmDelete = async () => {
+    setDeleting(true);
+    setError('');
+    try {
+      await onDelete();
+      onClose();
+    } catch (err) {
+      setError(err.message || 'Kunne ikke fjerne hendelsen');
+      setDeleting(false);
+    }
+  };
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-card" onClick={(event) => event.stopPropagation()}>
+        <div className="modal-header">
+          <h2>{calendarEvent.title}</h2>
+          <button type="button" className="modal-close" onClick={onClose} aria-label="Lukk">×</button>
+        </div>
+
+        {error ? <div className="alert">{error}</div> : null}
+
+        {calendarEvent.description ? <p>{calendarEvent.description}</p> : null}
+
+        <ul className="detail-rows">
+          <li>
+            <span className="detail-label">Fra</span>
+            <span className="detail-value">{formatDateTime(calendarEvent.startTime)}</span>
+          </li>
+          <li>
+            <span className="detail-label">Til</span>
+            <span className="detail-value">{formatDateTime(calendarEvent.endTime)}</span>
+          </li>
+          <li>
+            <span className="detail-label">Type</span>
+            <span className="detail-value">{isSharedEvent(calendarEvent) ? 'Delt' : 'Personlig'}</span>
+          </li>
+          <li>
+            <span className="detail-label">Opprettet av</span>
+            <span className="detail-value">{memberDisplayName(creator)}</span>
+          </li>
+        </ul>
+
+        {canDelete ? (
+          confirming ? (
+            <div className="detail-delete-confirm">
+              <span>Er du sikker på at du vil fjerne denne hendelsen?</span>
+              <div className="detail-delete-actions">
+                <button type="button" className="reject-button" disabled={deleting} onClick={handleConfirmDelete}>
+                  {deleting ? 'Fjerner…' : 'Ja, fjern'}
+                </button>
+                <button type="button" className="modal-switch" disabled={deleting} onClick={() => setConfirming(false)}>
+                  Avbryt
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button type="button" className="reject-button detail-delete-button" onClick={() => setConfirming(true)}>
+              Fjern hendelse
+            </button>
+          )
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+export default function HouseholdCalendar({ household, members, currentUser }) {
   const [month, setMonth] = useState(() => startOfMonth(new Date()));
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [selectedEvent, setSelectedEvent] = useState(null);
   const days = useMemo(() => getDaysForMonth(month), [month]);
 
   const loadEvents = async () => {
@@ -149,6 +237,11 @@ export default function HouseholdCalendar({ household, members }) {
     loadEvents();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [household.householdId, month]);
+
+  const handleDeleteEvent = async (eventId) => {
+    await apiFetch(`/api/households/${household.householdId}/events/${eventId}`, { method: 'DELETE' });
+    await loadEvents();
+  };
 
   const eventsByDay = useMemo(() => {
     const grouped = new Map();
@@ -193,6 +286,15 @@ export default function HouseholdCalendar({ household, members }) {
                         key={calendarEvent.id}
                         style={{ '--event-color': colorForEvent(calendarEvent, members) }}
                         title={calendarEvent.description || calendarEvent.title}
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => setSelectedEvent(calendarEvent)}
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault();
+                            setSelectedEvent(calendarEvent);
+                          }
+                        }}
                       >
                         {calendarEvent.title}
                       </div>
@@ -221,6 +323,16 @@ export default function HouseholdCalendar({ household, members }) {
           </div>
         </aside>
       </div>
+
+      {selectedEvent ? (
+        <EventDetailModal
+          calendarEvent={selectedEvent}
+          members={members}
+          canDelete={selectedEvent.createdByUserId === currentUser?.id}
+          onClose={() => setSelectedEvent(null)}
+          onDelete={() => handleDeleteEvent(selectedEvent.id)}
+        />
+      ) : null}
     </section>
   );
 }

@@ -9,6 +9,8 @@ public interface ICalendarEventRepository
     Task<CalendarEvent> CreateAsync(CalendarEvent calendarEvent, CancellationToken cancellationToken = default);
     Task<List<CalendarEvent>> GetByHouseholdAsync(Guid householdId, CancellationToken cancellationToken = default);
     Task<List<CalendarEvent>> GetByDateRangeAsync(Guid householdId, DateTime from, DateTime to, CancellationToken cancellationToken = default);
+    Task<CalendarEvent?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+    Task DeleteAsync(CalendarEvent calendarEvent, CancellationToken cancellationToken = default);
 }
 
 public sealed class CalendarEventRepository : ICalendarEventRepository
@@ -39,4 +41,13 @@ public sealed class CalendarEventRepository : ICalendarEventRepository
                 && calendarEvent.EndTime > from)
             .OrderBy(calendarEvent => calendarEvent.StartTime)
             .ToListAsync(cancellationToken);
+
+    public Task<CalendarEvent?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default) =>
+        _db.CalendarEvents.FirstOrDefaultAsync(calendarEvent => calendarEvent.Id == id, cancellationToken);
+
+    public async Task DeleteAsync(CalendarEvent calendarEvent, CancellationToken cancellationToken = default)
+    {
+        _db.CalendarEvents.Remove(calendarEvent);
+        await _db.SaveChangesAsync(cancellationToken);
+    }
 }

@@ -26,6 +26,18 @@ public static class CalendarEventEndpoints
                 : Results.Created($"/api/households/{householdId}/events/{calendarEvent.Id}", calendarEvent);
         });
 
+        group.MapDelete("/{eventId:guid}", async (Guid householdId, Guid eventId, ClaimsPrincipal principal, ICalendarEventRepository repository, CancellationToken cancellationToken) =>
+        {
+            var userId = GetUserId(principal);
+            var result = await CalendarEventHandlers.DeleteAsync(householdId, eventId, userId, repository, cancellationToken);
+            return result.Status switch
+            {
+                DeleteCalendarEventStatus.Deleted => Results.NoContent(),
+                DeleteCalendarEventStatus.Forbidden => Results.Forbid(),
+                _ => Results.NotFound()
+            };
+        });
+
         return app;
     }
 
