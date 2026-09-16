@@ -44,6 +44,24 @@ public static class CalendarEventHandlers
         return CalendarEventDto.FromEntity(created);
     }
 
+    public static async Task<DeleteCalendarEventResult> DeleteAsync(Guid householdId, Guid eventId, Guid userId, ICalendarEventRepository repository, CancellationToken cancellationToken)
+    {
+        var calendarEvent = await repository.GetByIdAsync(eventId, cancellationToken);
+
+        if (calendarEvent is null || calendarEvent.HouseholdId != householdId)
+        {
+            return new DeleteCalendarEventResult(DeleteCalendarEventStatus.NotFound);
+        }
+
+        if (calendarEvent.CreatedByUserId != userId)
+        {
+            return new DeleteCalendarEventResult(DeleteCalendarEventStatus.Forbidden);
+        }
+
+        await repository.DeleteAsync(calendarEvent, cancellationToken);
+        return new DeleteCalendarEventResult(DeleteCalendarEventStatus.Deleted);
+    }
+
     private static Task<bool> IsMemberAsync(Guid householdId, Guid userId, HomelyDbContext db, CancellationToken cancellationToken) =>
         db.Households.AnyAsync(household => household.HouseholdId == householdId && household.Members.Any(member => member.Id == userId), cancellationToken);
 }

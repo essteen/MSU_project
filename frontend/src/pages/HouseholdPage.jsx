@@ -711,7 +711,7 @@ export default function HouseholdPage({ household, currentUser, onBack }) {
         </article>
       </section>
 
-      <HouseholdCalendar household={household} members={members} />
+      <HouseholdCalendar household={household} members={members} currentUser={currentUser} />
 
       {openPanel === 'purchased-choice' ? (
         <AddChoiceModal

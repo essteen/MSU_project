@@ -93,6 +93,48 @@ public class CalendarEventTests
         Assert.Single(events!);
     }
 
+    [Fact]
+    public async Task Handler_DeletesEventForCreator()
+    {
+        using var db = TestDb.Create();
+        var household = await SeedHouseholdAsync(db);
+        var repository = new CalendarEventRepository(db);
+        var creator = household.Members[0];
+        var calendarEvent = await repository.CreateAsync(NewEvent(household.HouseholdId, creator.Id, DateTime.UtcNow.AddHours(1)));
+
+        var result = await CalendarEventHandlers.DeleteAsync(household.HouseholdId, calendarEvent.Id, creator.Id, repository, CancellationToken.None);
+
+        Assert.Equal(DeleteCalendarEventStatus.Deleted, result.Status);
+        Assert.Empty(await repository.GetByHouseholdAsync(household.HouseholdId));
+    }
+
+    [Fact]
+    public async Task Handler_ForbidsDeleteForNonCreator()
+    {
+        using var db = TestDb.Create();
+        var household = await SeedHouseholdAsync(db);
+        var repository = new CalendarEventRepository(db);
+        var creator = household.Members[0];
+        var calendarEvent = await repository.CreateAsync(NewEvent(household.HouseholdId, creator.Id, DateTime.UtcNow.AddHours(1)));
+
+        var result = await CalendarEventHandlers.DeleteAsync(household.HouseholdId, calendarEvent.Id, Guid.NewGuid(), repository, CancellationToken.None);
+
+        Assert.Equal(DeleteCalendarEventStatus.Forbidden, result.Status);
+        Assert.Single(await repository.GetByHouseholdAsync(household.HouseholdId));
+    }
+
+    [Fact]
+    public async Task Handler_ReturnsNotFoundForMissingEvent()
+    {
+        using var db = TestDb.Create();
+        var household = await SeedHouseholdAsync(db);
+        var repository = new CalendarEventRepository(db);
+
+        var result = await CalendarEventHandlers.DeleteAsync(household.HouseholdId, Guid.NewGuid(), household.Members[0].Id, repository, CancellationToken.None);
+
+        Assert.Equal(DeleteCalendarEventStatus.NotFound, result.Status);
+    }
+
     private static async Task<Household> SeedHouseholdAsync(Homely.Infrastructure.Data.HomelyDbContext db)
     {
         var member = new User

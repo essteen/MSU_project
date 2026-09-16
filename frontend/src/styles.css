@@ -498,6 +498,7 @@ li span {
   font-weight: 700;
   text-overflow: ellipsis;
   white-space: nowrap;
+  cursor: pointer;
 }
 
 .calendar-sidebar {
@@ -537,7 +538,7 @@ textarea {
 
 .calendar-form-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
   gap: 10px;
 }
 
@@ -545,12 +546,14 @@ textarea {
   display: flex;
   flex-direction: column;
   gap: 5px;
+  min-width: 0;
   color: var(--color-midnight-green);
   font-size: 0.8rem;
   font-weight: 700;
 }
 
 .calendar-form-row input {
+  width: 100%;
   min-width: 0;
 }
 
