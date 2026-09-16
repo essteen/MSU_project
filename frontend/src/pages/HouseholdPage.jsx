@@ -16,11 +16,12 @@ function memberDisplayName(member) {
   return member?.name || member?.username || 'Ukjent';
 }
 
-function MemberAvatar({ member }) {
+function MemberAvatar({ member, isAdmin }) {
   return (
     <div className="member-chip">
       <div className="member-emoji" aria-hidden="true">{emojiForMember(member.id)}</div>
       <span className="member-name">{memberDisplayName(member)}</span>
+      {isAdmin ? <span className="admin-badge">Admin</span> : null}
     </div>
   );
 }
@@ -648,7 +649,7 @@ export default function HouseholdPage({ household, currentUser, onBack }) {
           <div className="members-grid-wrap">
             <div className="members-grid">
               {members.map((member) => (
-                <MemberAvatar key={member.id} member={member} />
+                <MemberAvatar key={member.id} member={member} isAdmin={member.id === household.createdByUserId} />
               ))}
             </div>
           </div>

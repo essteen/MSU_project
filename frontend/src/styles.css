@@ -939,6 +939,17 @@ textarea {
   color: var(--color-deep-ink);
 }
 
+.admin-badge {
+  background: var(--color-midnight-green);
+  color: white;
+  font-weight: 700;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
 .mini-box {
   display: flex;
   flex-direction: column;
